@@ -5,13 +5,16 @@ import java.awt.Graphics;
 
 import javax.swing.JPanel;
 
+import inputs.KeyboardInputs;
+
 public class SimPanel extends JPanel{
 		
 	Simulation sim;
-	public SimPanel(Simulation sim) {
+	public SimPanel(Simulation sim, Camera cam) {
 		
 		this.sim = sim;
 		setPanelSize();
+		addKeyListener(new KeyboardInputs(sim, cam));
 		
 	}
 	
@@ -19,12 +22,6 @@ public class SimPanel extends JPanel{
 		super.paintComponent(g);
 		
 		sim.render(g);
-		
-		g.drawImage(null, 0, 0, null);
-		
-		g.drawRect(100, 100, 100, 100);
-		g.fillOval(300, 200, 10, 10);
-		
 	}
 	
 	private void setPanelSize() {
@@ -35,6 +32,7 @@ public class SimPanel extends JPanel{
 		setMaximumSize(maxSize);
 		setPreferredSize(prefSize);
 		
+
 		
 	}
 

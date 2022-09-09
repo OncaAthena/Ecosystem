@@ -10,6 +10,9 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 
+import main.Camera;
+import main.Simulation;
+
 public class Creature extends Entity {
 	
 	private float speed = 0.2f;
@@ -20,13 +23,17 @@ public class Creature extends Entity {
 	private Random random;
 	private float angle = 0;
 	
+	private Simulation sim;
 	private BufferedImage img;
 	
-	public Creature(float x, float y) {
+	public Creature(float x, float y, Simulation sim) {
 		super(x, y);
+		this.sim = sim;
 		loadImg();
 		random = new Random();
 		changeDirection();
+		
+		changeDirectionTime = random.nextDouble(2.0, 8.0)*second;
 	}
 	
 	public void Update(double delta) {
@@ -36,20 +43,20 @@ public class Creature extends Entity {
 //			System.out.println("Direction changed!" + delta);
 			changeDirectionCountdown += changeDirectionTime;
 		}
-		if (x < 0) {
+		if (x < sim.leftBound) {
 			xSpeed = Math.abs(xSpeed);
 			angle = (float) (Math.PI - angle);
 		}
-		if (x > 720) {
+		if (x > sim.rightBound) {
 			xSpeed = -Math.abs(xSpeed);
 			angle = (float) (Math.PI - angle);
 		}
-		if (y < 0) {
+		if (y < sim.upBound) {
 			ySpeed = Math.abs(ySpeed);
 			angle *= -1;
 
 		}
-		if (y > 540) {
+		if (y > sim.downBound) {
 			ySpeed = -Math.abs(ySpeed); /**/
 			angle *= -1;
 		}
@@ -70,7 +77,9 @@ public class Creature extends Entity {
 	}
 	
 	
-	public void Render(Graphics g) {
+	public void Render(Graphics g, Camera c) {
+		
+		// Code that will rotate the creature's image
 		final double sin = Math.abs(Math.sin(angle));
 		final double cos = Math.abs(Math.cos(angle));
 		final int w = (int) Math.floor(img.getWidth() * cos + img.getHeight() * sin);
@@ -83,8 +92,11 @@ public class Creature extends Entity {
 		final AffineTransformOp rotateOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
 		BufferedImage rotImg = rotateOp.filter(img,rotatedImage);
 		
+		float z = c.getZoom();
 		
-		g.drawImage(rotImg, (int) x,(int) y, null);
+		
+		g.drawImage(rotImg, c.xOffset(x),c.yOffset(y), 
+				(int) (rotImg.getWidth() * z), (int)(rotImg.getHeight() * z) , null);
 	}
 	
 	private void loadImg() {
