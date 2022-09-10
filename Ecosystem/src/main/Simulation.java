@@ -6,6 +6,7 @@ import java.awt.event.ComponentEvent;
 import java.util.*;
 import java.util.Random;
 
+import areas.RTree;
 import entities.Creature;
 
 public class Simulation implements Runnable {
@@ -26,7 +27,8 @@ public class Simulation implements Runnable {
 	
 	private int initialNumCreatures = 400;
 	private int spawnPerUpdate = 10;
-	private List<Creature> creatures = new ArrayList<>();
+	private int rtNodeCap = 50;
+	private RTree creatures = new RTree(rtNodeCap);
 	
 	
 	public Simulation() {
@@ -62,31 +64,23 @@ public class Simulation implements Runnable {
 	}
 	
 	private void spawnCreatures() {
-		for (int i = 0; i < spawnPerUpdate; i++) {
+		for (int i = 0; i < initialNumCreatures; i++) {
 			int x = random.nextInt(leftBound, rightBound);
 			int y = random.nextInt(upBound, downBound);
 			Creature c = new Creature(x, y, this);
-			creatures.add(c);
+			creatures.insert(c);
 		}
 			
 	}
 	
 	private void update(double delta) {
 		
-		for (int i = 0; i < creatures.size(); i++) {
-			creatures.get(i).Update(delta);
-		}
+		creatures.Update(delta);
 		camera.update();
-		if (creatures.size()<initialNumCreatures) {
-			spawnCreatures();
-		}
-		
 	}
 	
 	void render(Graphics g) {
-		for (int i = 0; i < creatures.size(); i++) {
-			creatures.get(i).Render(g, camera);
-		}
+			creatures.Render(g, camera);
 	}
 
 	private void startSimThread() {
@@ -127,8 +121,8 @@ public class Simulation implements Runnable {
 			
 			if (currentTime-lastCheck >= second) {
 				time++;
-				System.out.println("FPS: " + frames +" | UPS: " 
-						+ updates + " | Time elapsed: " + time+"s");
+				//System.out.println("FPS: " + frames +" | UPS: " 
+				//		+ updates + " | Time elapsed: " + time+"s");
 				lastCheck = currentTime;
 				
 				updates = 0;

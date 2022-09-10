@@ -36,6 +36,7 @@ public class Creature extends Entity {
 		changeDirectionTime = random.nextDouble(2.0, 8.0)*second;
 	}
 	
+	@Override
 	public void Update(double delta) {
 		changeDirectionCountdown -= delta;
 		if (changeDirectionCountdown <= 0){
@@ -43,20 +44,20 @@ public class Creature extends Entity {
 //			System.out.println("Direction changed!" + delta);
 			changeDirectionCountdown += changeDirectionTime;
 		}
-		if (x < sim.leftBound) {
+		if (getX() < sim.leftBound) {
 			xSpeed = Math.abs(xSpeed);
 			angle = (float) (Math.PI - angle);
 		}
-		if (x > sim.rightBound) {
+		if (getX() > sim.rightBound) {
 			xSpeed = -Math.abs(xSpeed);
 			angle = (float) (Math.PI - angle);
 		}
-		if (y < sim.upBound) {
+		if (getY() < sim.upBound) {
 			ySpeed = Math.abs(ySpeed);
 			angle *= -1;
 
 		}
-		if (y > sim.downBound) {
+		if (getY() > sim.downBound) {
 			ySpeed = -Math.abs(ySpeed); /**/
 			angle *= -1;
 		}
@@ -65,8 +66,8 @@ public class Creature extends Entity {
 	}
 	
 	public void move() {
-		x += xSpeed;
-		y += ySpeed;
+		x = getX() + xSpeed;
+		y = getY() + ySpeed;
 	}
 	
 	public void changeDirection() {
@@ -76,7 +77,7 @@ public class Creature extends Entity {
 		this.angle = (float)angle;
 	}
 	
-	
+	@Override
 	public void Render(Graphics g, Camera c) {
 		
 		// Code that will rotate the creature's image
@@ -95,7 +96,7 @@ public class Creature extends Entity {
 		float z = c.getZoom();
 		
 		
-		g.drawImage(rotImg, c.xOffset(x),c.yOffset(y), 
+		g.drawImage(rotImg, c.xOffset(getX()),c.yOffset(getY()), 
 				(int) (rotImg.getWidth() * z), (int)(rotImg.getHeight() * z) , null);
 	}
 	
