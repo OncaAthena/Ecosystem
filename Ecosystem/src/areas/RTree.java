@@ -13,6 +13,7 @@ public class RTree {
 	public RTree(int nodeCap) {
 		this.nodeCap = nodeCap;
 		root = new RTreeLeafNode(nodeCap, null);
+		root.setAsRoot(this);
 	}
 	
 	public void Render(Graphics g, Camera c ) {

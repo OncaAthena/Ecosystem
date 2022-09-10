@@ -15,10 +15,12 @@ public class RTreeNode{
 	public float upBound = infinity;
 	public float downBound = -infinity;
 	
+	public boolean dying = false; 
+	
 	protected RTree tree;
 	
 	protected int nodeCap;
-	private int underLimBuffer = 2;
+	protected int underLimBuffer = 2;
 	protected RTreeNode parent;
 	private List<RTreeNode> children = new ArrayList<>();
 	
@@ -29,7 +31,10 @@ public class RTreeNode{
 	
 	// Variables for entityManagement
 	
+	
+	// TODO: Render only if in screen
 	public void Render(Graphics g, Camera c ) {
+		RenderBounds(g, c);
 		for (int i = 0; i < children.size(); i++) {
 			children.get(i).Render(g, c);
 		}
@@ -37,13 +42,26 @@ public class RTreeNode{
 	
 	public void Update(double delta) {
 		for (int i = 0; i < children.size(); i++) {
-			children.get(i).Update(delta);
+			RTreeNode c = children.get(i); 
+			c.Update(delta);
+			
+			if (c.count() < (nodeCap/2 - underLimBuffer)) {
+				kill(c);
+			}
 		}
+		
+		if (dying){
+			die();
+		}
+		
 	}
 
 	
 	
-	
+	protected  void RenderBounds(Graphics g, Camera c ) {
+		float z = c.getZoom();
+		g.drawRect(c.xOffset(leftBound), c.yOffset(upBound), (int)(z*(rightBound-leftBound)+32), (int)(z*(downBound-upBound)+32));
+	}
 	
 	
 	// Variables for dataStructure
@@ -66,13 +84,27 @@ public class RTreeNode{
 		float areaIncrease = childToInsert.areaIncrease(x, x, y, y);
 		for (int i = 1; i < children.size(); i++) {
 			RTreeNode c = children.get(i);
-			float nai = c.areaIncrease(x, x, y, y);
-			if (nai < areaIncrease) {
-				childToInsert = c;
-				areaIncrease = nai;
+			if (!c.dying) {
+				float nai = c.areaIncrease(x, x, y, y);
+				if (nai < areaIncrease) {
+					childToInsert = c;
+					areaIncrease = nai;
+				}
 			}
 		}
 		childToInsert.insert(e);
+	}
+	
+	public void updateElement(Entity e) {
+		if (inside(e)) {
+			insert(e);
+		}
+		else if (isRoot()) {
+			insert(e);
+		}else {
+			// TODO : Implementar buffer	
+			parent.updateElement(e);
+		}
 	}
 	
 	
@@ -94,7 +126,7 @@ public class RTreeNode{
 			downBound = node.downBound;
 			flag = true;
 		}
-		if (flag && parent !=null) {
+		if (flag && !isRoot()) {
 			parent.checkBounds(this);
 		}
 	}
@@ -103,7 +135,7 @@ public class RTreeNode{
 		int[] ineffPair = mostInefficientPair();
 		
 		boolean isCurrentRoot = false;
-		if (parent == null) {
+		if (isRoot()) {
 			parent = new RTreeNode(nodeCap, null);
 			isCurrentRoot = true;
 		}
@@ -159,8 +191,8 @@ public class RTreeNode{
 			children.remove(0);
 		}
 		
-		if (parent != null) parent.removeNode(this);
 		if (isCurrentRoot) parent.setAsRoot(tree);
+		else parent.removeNode(this);
 
 	}
 	
@@ -187,8 +219,43 @@ public class RTreeNode{
 		return new int [] {mi1, mi2};
 	}
 	
-	private void die() {
+	protected void kill(RTreeNode c) {
+		List<RTreeNode> toReinsert = c.getChildren();
+		c.dying = true;
+		for (Iterator iterator = toReinsert.iterator(); iterator.hasNext();) {
+			RTreeNode node = (RTreeNode) iterator.next();
+			RTreeNode childToInsert = children.get(0);
+			float areaIncrease = childToInsert.areaIncrease
+					(node.leftBound, node.rightBound, node.upBound, node.downBound);
+			for (int i = 1; i < children.size(); i++) {
+				RTreeNode nc = children.get(i);
+				if (!nc.dying) {				
+					float nai = nc.areaIncrease
+							(node.leftBound, node.rightBound, node.upBound, node.downBound);
+					if (nai < areaIncrease) {
+						childToInsert = nc;
+						areaIncrease = nai;
+					}
+				}
+			}
+			
+			childToInsert.addNode(node);
+
+		}
+	}
+	protected void kill(RTreeLeafNode c) {
+		List<Entity> toReinsert = c.getElements();
+		c.dying = true;
+		for (int i = 0;i < toReinsert.size(); i++) {
+			Entity e = toReinsert.get(i);
+			insert(e);
+		}
+		
+	}
+	
+	protected void die() {
 		//TODO: Die!
+		parent.removeNode(this);
 	}
 	
 	public float mbr2(RTreeNode n1, RTreeNode n2) {
@@ -222,15 +289,38 @@ public class RTreeNode{
 				&& u < downBound && d > upBound;
 		return overlap;
 	}
+	public boolean inside(float x, float y) {
+		boolean vInside = leftBound < x && x < rightBound;
+		boolean hInside = upBound < y && y < downBound;
+		return vInside && hInside;
+	}
+	public boolean inside (Entity e) {
+		return inside(e.getX(), e.getY());
+	}
 	
 
 	public void verifyNode() {
-		if (children.size() > nodeCap) split();
-		if (children.size() < (nodeCap/2 - underLimBuffer)) die();
+		if (count() > nodeCap) split();
 	}
 	
 	public List<RTreeNode> getChildren(){
 		return children;
+	}
+	
+	public boolean isRoot() {
+		return (parent == null);
+	}
+	
+	public int count() {
+		return children.size();
+	}
+	
+	protected void resetBounds() {
+		leftBound = infinity;
+		rightBound = -infinity;
+		upBound = infinity;
+		downBound = -infinity;
+
 	}
 
 

@@ -2,9 +2,9 @@ package main;
 
 public class Camera {
 	
-	private float x = 0, y = 0;
+	private float x = 800, y = 800;
 	private float xSpeed = 0.0f, ySpeed = 0.0f; 
-	private float zoom = 1.0f;
+	private float zoom = 0.5f;
 	private float speed = 0.5f;
 	private float zoomSpeed = 1.005f;
 	private boolean left = false, right = false,

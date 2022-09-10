@@ -25,9 +25,9 @@ public class Simulation implements Runnable {
 		
 	
 	
-	private int initialNumCreatures = 400;
+	private int initialNumCreatures = 100;
 	private int spawnPerUpdate = 10;
-	private int rtNodeCap = 50;
+	private int rtNodeCap = 10;
 	private RTree creatures = new RTree(rtNodeCap);
 	
 	
@@ -46,6 +46,8 @@ public class Simulation implements Runnable {
 		simPanel.requestFocus();
 
 		initCamera();
+
+		simPanel.requestFocus();
 
 		startSimThread();
 	}
@@ -80,7 +82,7 @@ public class Simulation implements Runnable {
 	}
 	
 	void render(Graphics g) {
-			creatures.Render(g, camera);
+		creatures.Render(g, camera);
 	}
 
 	private void startSimThread() {
@@ -121,8 +123,8 @@ public class Simulation implements Runnable {
 			
 			if (currentTime-lastCheck >= second) {
 				time++;
-				//System.out.println("FPS: " + frames +" | UPS: " 
-				//		+ updates + " | Time elapsed: " + time+"s");
+				System.out.println("FPS: " + frames +" | UPS: " 
+						+ updates + " | Time elapsed: " + time+"s");
 				lastCheck = currentTime;
 				
 				updates = 0;

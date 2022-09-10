@@ -17,6 +17,9 @@ public class RTreeLeafNode extends RTreeNode {
 	
 	@Override
 	public void Render(Graphics g, Camera c ) {
+		
+		RenderBounds(g, c);
+		
 		for (int i = 0; i < elements.size(); i++) {
 			elements.get(i).Render(g, c);
 		}
@@ -24,7 +27,9 @@ public class RTreeLeafNode extends RTreeNode {
 	@Override
 	public void Update(double delta) {
 		for (int i = 0; i < elements.size(); i++) {
-			elements.get(i).Update(delta);
+			Entity e = elements.get(i);
+			e.Update(delta);
+			updateElement(e);
 		}
 	}
 
@@ -37,10 +42,35 @@ public class RTreeLeafNode extends RTreeNode {
 	@Override
 	public void insert(Entity e) {
 		elements.add(e);
-		checkBounds(e);
+		checkBounds(e, true);
+		verifyNode();
 	}
 	
-	public void checkBounds(Entity e) {
+	public void remove(Entity e) {
+		elements.remove(e);
+		recalculateBounds();
+		
+	}
+	
+	public void updateElement(Entity e) {
+		if (!inside(e)){
+			// TODO : Implementar buffer
+			if (isRoot()) {
+				checkBounds(e, false);
+			}else {
+				remove(e);
+				parent.updateElement(e);
+			}
+		}
+	}
+	
+	
+	
+	public void redrawBound() {
+		
+	}
+	
+	public void checkBounds(Entity e, boolean propagate) {
 		boolean flag = false;
 		if (e.getX() < leftBound) {
 			leftBound = e.getX();
@@ -58,7 +88,7 @@ public class RTreeLeafNode extends RTreeNode {
 			downBound = e.getY();
 			flag = true;
 		}
-		if (flag && parent !=null) {
+		if (flag && propagate && parent !=null) {
 			parent.checkBounds(this);
 		}
 	}
@@ -128,6 +158,35 @@ public class RTreeLeafNode extends RTreeNode {
 		if (isCurrentRoot) parent.setAsRoot(tree);
 	
 	}
+	
+	
+
+	
+	public void recalculateBounds() {
+		resetBounds();
+		for (int i = 0; i < elements.size(); i++) {
+			Entity e = elements.get(i);
+			checkBounds(e, false);
+		}
+	}
+	
+	public 	List<Entity> getElements(){
+		return elements;
+	}
+
+	
+	@Override
+	public int count() {
+		return elements.size();
+	}
+
+	
+	
+	
+	
+	
+	
+	
 	
 
 	@Override
