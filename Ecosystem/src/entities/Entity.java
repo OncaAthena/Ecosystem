@@ -27,10 +27,10 @@ public abstract class Entity {
 		return y;
 	}
 	
-	public void Render(Graphics g, Camera c ) {
+	public void render(Graphics g, Camera c ) {
 
 	}
-	public void Update(double delta) {
+	public void update(double delta) {
 
 	}
 

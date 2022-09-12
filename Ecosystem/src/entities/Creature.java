@@ -37,7 +37,7 @@ public class Creature extends Entity {
 	}
 	
 	@Override
-	public void Update(double delta) {
+	public void update(double delta) {
 		changeDirectionCountdown -= delta;
 		if (changeDirectionCountdown <= 0){
 			changeDirection();
@@ -78,7 +78,8 @@ public class Creature extends Entity {
 	}
 	
 	@Override
-	public void Render(Graphics g, Camera c) {
+	public void render(Graphics g, Camera c) {
+		if (c.cannotRenderCreature()) return;
 		
 		// Code that will rotate the creature's image
 		final double sin = Math.abs(Math.sin(angle));
@@ -98,6 +99,8 @@ public class Creature extends Entity {
 		
 		g.drawImage(rotImg, c.xOffset(getX()),c.yOffset(getY()), 
 				(int) (rotImg.getWidth() * z), (int)(rotImg.getHeight() * z) , null);
+		
+		c.creatureRendered();
 	}
 	
 	private void loadImg() {

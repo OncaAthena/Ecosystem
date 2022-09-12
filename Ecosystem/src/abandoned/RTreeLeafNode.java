@@ -1,4 +1,4 @@
-package areas;
+package abandoned;
 
 import java.awt.Graphics;
 import java.util.ArrayList;
@@ -7,9 +7,11 @@ import java.util.List;
 import entities.Entity;
 import main.Camera;
 
+@Deprecated
 public class RTreeLeafNode extends RTreeNode {
 
 	private List<Entity> elements = new ArrayList<>();
+	private List<Entity> removingElems = new ArrayList<>();
 	
 	public RTreeLeafNode(int nodeCap, RTreeNode parent) {
 		super(nodeCap, parent);
@@ -21,16 +23,30 @@ public class RTreeLeafNode extends RTreeNode {
 		RenderBounds(g, c);
 		
 		for (int i = 0; i < elements.size(); i++) {
-			elements.get(i).Render(g, c);
+			elements.get(i).render(g, c);
 		}
+		for (int i = 0; i < elementsToReinsert.size(); i++) {
+			Entity child = elementsToReinsert.get(i);
+			child.render(g, c);
+			System.out.println("Leaf with reinsertion!!!!!!");
+		}
+		for (int i = 0; i < removingElems.size(); i++) {
+			Entity child = removingElems.get(i);
+			child.render(g, c);
+			System.out.println("Leaf with reinsertion!!!!!!");
+		}
+
 	}
 	@Override
 	public void Update(double delta) {
+		removingElems = new ArrayList<>();
 		for (int i = 0; i < elements.size(); i++) {
 			Entity e = elements.get(i);
-			e.Update(delta);
+			//e.Update(delta);
 			updateElement(e);
 		}
+		
+		if (dying) die();
 	}
 
 	
@@ -47,6 +63,7 @@ public class RTreeLeafNode extends RTreeNode {
 	}
 	
 	public void remove(Entity e) {
+		removingElems.add(e);
 		elements.remove(e);
 		recalculateBounds();
 		
@@ -65,10 +82,6 @@ public class RTreeLeafNode extends RTreeNode {
 	}
 	
 	
-	
-	public void redrawBound() {
-		
-	}
 	
 	public void checkBounds(Entity e, boolean propagate) {
 		boolean flag = false;
@@ -96,10 +109,9 @@ public class RTreeLeafNode extends RTreeNode {
 	@Override
 	protected void split() {
 		
-		boolean isCurrentRoot = false;
-		if (parent == null) {
+		boolean isCurrentRoot = isRoot();
+		if (isCurrentRoot) {
 			parent = new RTreeNode(nodeCap, null);
-			isCurrentRoot = true;
 		}
 		
 		int[] ineffPair = mostInefficientPair();
@@ -154,8 +166,10 @@ public class RTreeLeafNode extends RTreeNode {
 			elements.remove(0);
 		}
 		
-		if (parent != null) parent.removeNode(this);
 		if (isCurrentRoot) parent.setAsRoot(tree);
+		else dying = true;
+		
+		parent.verifyNode();
 	
 	}
 	
@@ -170,6 +184,7 @@ public class RTreeLeafNode extends RTreeNode {
 		}
 	}
 	
+	@Override
 	public 	List<Entity> getElements(){
 		return elements;
 	}

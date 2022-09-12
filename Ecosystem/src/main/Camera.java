@@ -1,5 +1,7 @@
 package main;
 
+import util.Bounds;
+
 public class Camera {
 	
 	private float x = 800, y = 800;
@@ -7,6 +9,8 @@ public class Camera {
 	private float zoom = 0.5f;
 	private float speed = 0.5f;
 	private float zoomSpeed = 1.005f;
+	private int maxCreaturesToRender = 300000;
+	private int creaturesToRender = 0;
 	private boolean left = false, right = false,
 			up = false, down = false, 
 			zoomIn = false, zoomOut = false;
@@ -54,6 +58,16 @@ public class Camera {
 	public int yOffset(float yObj) {
 		return (int)(zoom*(yObj - y) + halfHeight);
 	}
+	
+	public void restartFrame() {
+		creaturesToRender = maxCreaturesToRender;
+	}
+	public void creatureRendered() {
+		creaturesToRender--;
+	}
+	public boolean cannotRenderCreature() {
+		return (creaturesToRender <= 0);
+	}
 
 
 	public boolean isLeft() {
@@ -94,6 +108,10 @@ public class Camera {
 
 	public float getZoom() {
 		return zoom;
+	}
+	
+	public Bounds getBounds() {
+		return new Bounds(x - (halfWidth/zoom), x + (halfWidth/zoom), y - (halfHeight/zoom), y + (halfHeight/zoom));
 	}
 	
 

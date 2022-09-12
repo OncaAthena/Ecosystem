@@ -6,8 +6,9 @@ import java.awt.event.ComponentEvent;
 import java.util.*;
 import java.util.Random;
 
-import areas.RTree;
 import entities.Creature;
+import handler.EntityHandler;
+import util.Bounds;
 
 public class Simulation implements Runnable {
 	private SimWindow simWindow;
@@ -18,17 +19,19 @@ public class Simulation implements Runnable {
 	private final int UPS_SET = 480;
 	private Random random;
 	
+	
+	// TODO: Bounds data structure
 	public int leftBound = 0;
-	public int rightBound = 1720;
+	public int rightBound = 1800;
 	public int upBound = 0;
-	public int downBound = 1540;
+	public int downBound = 1800;
 		
 	
 	
-	private int initialNumCreatures = 100;
+	private int initialNumCreatures = 400;
 	private int spawnPerUpdate = 10;
 	private int rtNodeCap = 10;
-	private RTree creatures = new RTree(rtNodeCap);
+	private EntityHandler creatures = new EntityHandler(18,18, bounds());
 	
 	
 	public Simulation() {
@@ -77,13 +80,22 @@ public class Simulation implements Runnable {
 	
 	private void update(double delta) {
 		
-		creatures.Update(delta);
+		creatures.update(delta);
 		camera.update();
 	}
 	
 	void render(Graphics g) {
-		creatures.Render(g, camera);
+		camera.restartFrame();
+		creatures.render(g, camera);
 	}
+	
+	private Bounds bounds() {
+		Bounds b = new Bounds(leftBound, rightBound, upBound, downBound);
+		return b;
+	}
+	
+	
+	
 
 	private void startSimThread() {
 		simThread = new Thread(this);
@@ -123,8 +135,8 @@ public class Simulation implements Runnable {
 			
 			if (currentTime-lastCheck >= second) {
 				time++;
-				System.out.println("FPS: " + frames +" | UPS: " 
-						+ updates + " | Time elapsed: " + time+"s");
+/*				System.out.println("FPS: " + frames +" | UPS: " 
+						+ updates + " | Time elapsed: " + time+"s"); /**/
 				lastCheck = currentTime;
 				
 				updates = 0;

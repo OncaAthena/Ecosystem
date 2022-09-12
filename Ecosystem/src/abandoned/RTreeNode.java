@@ -1,12 +1,16 @@
-package areas;
+package abandoned;
 
 import java.awt.Graphics;
 import java.util.*;
 
 import entities.Entity;
 import main.Camera;
+import util.Bounds;
 
+@Deprecated
 public class RTreeNode{
+	
+	private boolean debuggingDeath = false;
 	
 	//TODO Make this not ugly
 	private float infinity = 1000000;
@@ -14,6 +18,7 @@ public class RTreeNode{
 	public float rightBound = -infinity;
 	public float upBound = infinity;
 	public float downBound = -infinity;
+	
 	
 	public boolean dying = false; 
 	
@@ -23,6 +28,8 @@ public class RTreeNode{
 	protected int underLimBuffer = 2;
 	protected RTreeNode parent;
 	private List<RTreeNode> children = new ArrayList<>();
+	private List<RTreeNode> nodesToReinsert = new ArrayList<>();
+	protected List<Entity> elementsToReinsert= new ArrayList<>();
 	
 	public RTreeNode(int nodeCap, RTreeNode parent) {
 		this.nodeCap = nodeCap;
@@ -36,7 +43,21 @@ public class RTreeNode{
 	public void Render(Graphics g, Camera c ) {
 		RenderBounds(g, c);
 		for (int i = 0; i < children.size(); i++) {
-			children.get(i).Render(g, c);
+			RTreeNode child = children.get(i);
+			if (child.overlap(c.getBounds())){
+				child.Render(g, c);
+			}
+		}
+		for (int i = 0; i < nodesToReinsert.size(); i++) {
+			RTreeNode child = nodesToReinsert.get(i);
+			if (child.overlap(c.getBounds())){
+				child.Render(g, c);
+			}
+		}
+		for (int i = 0; i < elementsToReinsert.size(); i++) {
+			Entity child = elementsToReinsert.get(i);
+			child.render(g, c);
+			
 		}
 	}
 	
@@ -73,6 +94,7 @@ public class RTreeNode{
 	
 	public void addNode(RTreeNode node) {
 		children.add(node);
+		//verifyNode();
 	}
 	public void removeNode(RTreeNode node) {
 		children.remove(node);
@@ -96,10 +118,20 @@ public class RTreeNode{
 	}
 	
 	public void updateElement(Entity e) {
-		if (inside(e)) {
-			insert(e);
-		}
-		else if (isRoot()) {
+		if (hasChildren()) {
+			if (inside(e)) {
+				insert(e);
+			}else {
+				if (isRoot()) {
+					insert(e);
+				}else {
+					// TODO : Implementar buffer	
+					parent.updateElement(e);
+				}
+			}
+		}else if (isRoot()) {
+			System.out.println("Raiz não tem filho!");
+			children.add(new RTreeNode(nodeCap, this));
 			insert(e);
 		}else {
 			// TODO : Implementar buffer	
@@ -131,15 +163,15 @@ public class RTreeNode{
 		}
 	}
 
-	protected void split() {
-		int[] ineffPair = mostInefficientPair();
+	protected void split() {}
+	protected void splitN() {
 		
-		boolean isCurrentRoot = false;
-		if (isRoot()) {
+		boolean isCurrentRoot = isRoot();
+		if (isCurrentRoot) {
 			parent = new RTreeNode(nodeCap, null);
-			isCurrentRoot = true;
 		}
 		
+		int[] ineffPair = mostInefficientPair();
 		RTreeNode split1 = new RTreeNode(nodeCap, parent);
 		RTreeNode split2 = new RTreeNode(nodeCap, parent);
 		parent.addNode(split1);
@@ -193,6 +225,8 @@ public class RTreeNode{
 		
 		if (isCurrentRoot) parent.setAsRoot(tree);
 		else parent.removeNode(this);
+		
+		
 
 	}
 	
@@ -220,10 +254,34 @@ public class RTreeNode{
 	}
 	
 	protected void kill(RTreeNode c) {
-		List<RTreeNode> toReinsert = c.getChildren();
 		c.dying = true;
-		for (Iterator iterator = toReinsert.iterator(); iterator.hasNext();) {
-			RTreeNode node = (RTreeNode) iterator.next();
+		while (c.hasChildren()) {
+			RTreeNode node = c.getChildren().get(0);
+			nodesToReinsert.add(node);
+			c.getChildren().remove(0);
+		}
+		while (c.hasElements()) {
+			Entity elem= c.getElements().get(0);
+			elementsToReinsert.add(elem);
+			c.getElements().remove(0);
+		}
+		reinsertAll();
+	}
+	
+	private void reinsertAll() {
+/*		while (nodesToReinsert.size() > 0) {
+			RTreeNode n = nodesToReinsert.get(0);
+			insertNode(n);
+			nodesToReinsert.remove(0);
+		} /**/
+		while (elementsToReinsert.size() > 0) {
+			Entity n = elementsToReinsert.get(0);
+			insert(n);
+			elementsToReinsert.remove(0);
+		}
+	}
+	
+	private void insertNode(RTreeNode node){
 			RTreeNode childToInsert = children.get(0);
 			float areaIncrease = childToInsert.areaIncrease
 					(node.leftBound, node.rightBound, node.upBound, node.downBound);
@@ -241,21 +299,45 @@ public class RTreeNode{
 			
 			childToInsert.addNode(node);
 
-		}
-	}
-	protected void kill(RTreeLeafNode c) {
+		}/**/
+	
+	
+/*	protected void kill(RTreeLeafNode c) {
 		List<Entity> toReinsert = c.getElements();
-		c.dying = true;
 		for (int i = 0;i < toReinsert.size(); i++) {
 			Entity e = toReinsert.get(i);
 			insert(e);
 		}
 		
-	}
+		c.dying = true;
+		
+	}/**/
 	
 	protected void die() {
 		//TODO: Die!
-		parent.removeNode(this);
+		boolean canDie = true;
+		//TODO: Die if I have to!!!!!
+		
+		if (hasChildren()) {
+			if (debuggingDeath) System.out.println("Died with children!");
+			canDie = false;
+		}
+		if (hasElements()) {
+			if (debuggingDeath) System.out.println("Died with Elements! " + getElements().size());
+			canDie = false;
+		}
+		if (elementsToReinsert.size()>0) {
+			if (debuggingDeath) System.out.println("Died without reinserting elements!");
+			canDie = false;
+		}
+		if (nodesToReinsert.size()>0) {
+			if (debuggingDeath) System.out.println("Died without reinserting nodes!");
+			canDie = false;
+		}
+		
+		dying = canDie;
+
+		if (canDie) parent.removeNode(this);
 	}
 	
 	public float mbr2(RTreeNode n1, RTreeNode n2) {
@@ -282,6 +364,10 @@ public class RTreeNode{
 	}
 	public float area() {
 		return area(leftBound, rightBound, upBound, downBound);
+	}
+	
+	public boolean overlap(Bounds b) {
+		return overlap(b.left, b.right, b.up, b.down);
 	}
 	
 	public boolean overlap(float l, float r, float u, float d) {
@@ -314,6 +400,9 @@ public class RTreeNode{
 	public int count() {
 		return children.size();
 	}
+	public int reinsertCount() {
+		return nodesToReinsert.size();
+	}
 	
 	protected void resetBounds() {
 		leftBound = infinity;
@@ -322,6 +411,23 @@ public class RTreeNode{
 		downBound = -infinity;
 
 	}
+	
+	public boolean hasChildren() {
+		return children.size() > 0;
+	}
+	public boolean hasElements() {
+		return getElements().size() > 0;
+	}
+	
+	public 	List<Entity> getElements(){
+		return elementsToReinsert;
+	}
+	
+	public int treeDepth() {
+		if (hasChildren()) return (children.get(0).treeDepth()+1);
+		else return 0;
+	}
+
 
 
 }
