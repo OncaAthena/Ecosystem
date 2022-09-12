@@ -1,6 +1,10 @@
 package util;
 
+import java.util.Random;
+
 public class Bounds {
+	
+	private static Random random = new Random();
 	
 	public float left;
 	public float right;
@@ -19,6 +23,11 @@ public class Bounds {
 		boolean vIn = up<y && y<down;
 		return hIn&&vIn;
 	}
+	public boolean overlap(Bounds other) {
+		boolean hOl = left<other.right && other.left<right; 
+		boolean vOl= up<other.down && other.up<down;
+		return hOl&&vOl;
+	}
 	
 	public float width() {
 		return (right - left);
@@ -27,6 +36,11 @@ public class Bounds {
 		return (down - up);
 	}
 
-	
+	public float randX() {
+		return random.nextFloat(left, right);
+	}
+	public float randY() {
+		return random.nextFloat(up, down);
+	}
 	
 }

@@ -22,12 +22,13 @@ public class EntityHandler {
 		this.ySize = ySize;
 		xChunkSize = bounds.width()/xSize;
 		yChunkSize = bounds.height()/ySize;
-		System.out.println("chunk size: "+ xChunkSize + " x " + yChunkSize);
+//		System.out.println("chunk size: "+ xChunkSize + " x " + yChunkSize);
 		
 		chunks = new Chunk[xSize][ySize];
 		for (int i = 0; i<xSize; i++) {
 			for (int j = 0; j<xSize; j++) {
-				chunks[i][j] = new Chunk();
+				System.out.println("Initializing chunks: "+ ((100*i+(100*j/ySize))/xSize)+ "%...");
+				chunks[i][j] = new Chunk(chunkBounds(i, j));
 			}
 		}
 		
@@ -39,7 +40,9 @@ public class EntityHandler {
 	public void update(double delta) {
 		for (int i =0; i<xSize;i++) {
 			for (int j = 0; j<xSize;j++) {
+				
 				chunks[i][j].update(delta);
+				
 			}
 		}
 		
@@ -72,10 +75,10 @@ public class EntityHandler {
 	}
 	
 	private Bounds chunkBounds(int i, int j) {
-		Bounds b = new Bounds(	bounds.left + (i*xSize),
-								bounds.left + ((i+1)*xSize),
-								bounds.up + (j*xSize),
-								bounds.up+ ((j+1)*xSize));
+		Bounds b = new Bounds(	bounds.left + (i*xChunkSize),
+								bounds.left + ((i+1)*xChunkSize),
+								bounds.up + (j*xChunkSize),
+								bounds.up+ ((j+1)*xChunkSize));
 		return b;
 	}
 	

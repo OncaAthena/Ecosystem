@@ -135,7 +135,7 @@ public class Simulation implements Runnable {
 			
 			if (currentTime-lastCheck >= second) {
 				time++;
-/*				System.out.println("FPS: " + frames +" | UPS: " 
+				System.out.println("FPS: " + frames +" | UPS: " 
 						+ updates + " | Time elapsed: " + time+"s"); /**/
 				lastCheck = currentTime;
 				

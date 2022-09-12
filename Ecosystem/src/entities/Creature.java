@@ -25,11 +25,12 @@ public class Creature extends Entity {
 	
 	private Simulation sim;
 	private BufferedImage img;
+	public static final float Size = 32;
 	
 	public Creature(float x, float y, Simulation sim) {
 		super(x, y);
 		this.sim = sim;
-		loadImg();
+		img = loadImg("creature.png");
 		random = new Random();
 		changeDirection();
 		
@@ -96,6 +97,7 @@ public class Creature extends Entity {
 		
 		float z = c.getZoom();
 		
+		g.drawRect(c.xOffset(x), c.yOffset(y), (int)(z*Size), (int)(z*Size));
 		
 		g.drawImage(rotImg, c.xOffset(getX()),c.yOffset(getY()), 
 				(int) (rotImg.getWidth() * z), (int)(rotImg.getHeight() * z) , null);
@@ -103,22 +105,5 @@ public class Creature extends Entity {
 		c.creatureRendered();
 	}
 	
-	private void loadImg() {
-		InputStream is = getClass().getResourceAsStream("/creature.png");
-		try {
-			img = ImageIO.read(is);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			try {
-				is.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-	}
 
 }
