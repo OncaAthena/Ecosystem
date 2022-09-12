@@ -15,18 +15,29 @@ import main.Simulation;
 
 public class Creature extends Entity {
 	
+	// Positional and dynamics variable declarations
 	private float speed = 0.2f;
 	private final double second = 1000000000;
 	private double changeDirectionCountdown = 5.0 * second;
 	private double changeDirectionTime = 5.0 * second;
 	private float xSpeed, ySpeed;
-	private Random random;
 	private float angle = 0;
-	
-	private Simulation sim;
-	private BufferedImage img;
 	public static final float Size = 32;
+
+	// Reference variable declarations
+	private BufferedImage img;
+	private Random random;
+	// TODO: Remove the reference to the simulation
+	private Simulation sim;
 	
+	/**
+	 * Constructor
+	 * 
+	 * @author Onca
+	 * @param x: initial x position
+	 * @param y: initial y position
+	 * @param sim: reference to simulation
+	 */
 	public Creature(float x, float y, Simulation sim) {
 		super(x, y);
 		this.sim = sim;
@@ -36,7 +47,34 @@ public class Creature extends Entity {
 		
 		changeDirectionTime = random.nextDouble(2.0, 8.0)*second;
 	}
+
+	/***************************************************************************
+	 * Section: Behavior functions
+	 * 
+	 **************************************************************************/
+	public void move() {
+		x = getX() + xSpeed;
+		y = getY() + ySpeed;
+	}
 	
+	public void changeDirection() {
+		double angle = (random.nextFloat() * 2 * Math.PI);
+		xSpeed = (float) (Math.cos(angle) * speed);
+		ySpeed = (float) (Math.sin(angle) * speed);
+		this.angle = (float)angle;
+	}
+    
+	/***************************************************************************
+	 * Section: System functions
+	 * 
+	 **************************************************************************/
+	
+	/**
+	 * Logic frame that updates position of element and adjust accordingly
+	 * 
+	 * @author Onca
+	 * @param delta: update duration in nanoseconds.
+	 */
 	@Override
 	public void update(double delta) {
 		changeDirectionCountdown -= delta;
@@ -65,19 +103,13 @@ public class Creature extends Entity {
 		
 		move();
 	}
-	
-	public void move() {
-		x = getX() + xSpeed;
-		y = getY() + ySpeed;
-	}
-	
-	public void changeDirection() {
-		double angle = (random.nextFloat() * 2 * Math.PI);
-		xSpeed = (float) (Math.cos(angle) * speed);
-		ySpeed = (float) (Math.sin(angle) * speed);
-		this.angle = (float)angle;
-	}
-	
+
+	/**
+	 * @author Onca
+	 * @param delta: update duration in nanoseconds.
+	 * 
+	 * Graphic frame that renders element to the screen.
+	 */	
 	@Override
 	public void render(Graphics g, Camera c) {
 		if (c.cannotRenderCreature()) return;
